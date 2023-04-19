@@ -1,37 +1,49 @@
-# Copyright (c) HashiCorp, Inc.
-# SPDX-License-Identifier: MPL-2.0
-
-variable "project_id" {
-  description = "project id"
+variable "gke_username" {
+  default     = ""
+  description = "gke username"
 }
 
-variable "region" {
-  description = "region"
+variable "gke_password" {
+  default     = ""
+  description = "gke password"
 }
 
-provider "google" {
-  project = var.project_id
-  region  = var.region
+variable "gke_num_nodes" {
+  default     = 2
+  description = "number of gke nodes"
 }
 
-
-# VPC
-resource "google_compute_network" "vpc" {
-  name                    = "ea2-vpc"
-  auto_create_subnetworks = "false"
+resource "google_container_cluster" "primary" {
+  name     = "ea2-gke"
+  location = var.region
+  
+  remove_default_node_pool = true
+  initial_node_count       = 1
+  network    = google_compute_network.vpc.name
+  subnetwork = google_compute_subnetwork.subnet.name
 }
 
-# Subnet
-resource "google_compute_subnetwork" "subnet" {
-  name          = "ea2-subnet"
-  region        = var.region
-  network       = google_compute_network.vpc.name
-  ip_cidr_range = "10.10.0.0/24"
-}
+resource "google_container_node_pool" "primary_nodes" {
+  name       = google_container_cluster.primary.name
+  location   = var.region
+  cluster    = google_container_cluster.primary.name
+  node_count = var.gke_num_nodes
 
-resource "google_compute_subnetwork" "subnet2" {
-  name          = "ea2-subnet2"
-  region        = var.region
-  network       = google_compute_network.vpc.name
-  ip_cidr_range = "10.11.0.0/24"
+    node_config {
+    oauth_scopes = [
+      "https://www.googleapis.com/auth/logging.write",
+      "https://www.googleapis.com/auth/monitoring",
+    ]
+    disk_size_gb  = 30
+    labels = {
+      env = "ea2"
+    }
+
+    # preemptible  = true
+    machine_type = "n1-standard-1"
+    tags         = ["gke-node", "ea2-gke"]
+    metadata = {
+      disable-legacy-endpoints = "true"
+    }
+  }
 }
