@@ -51,6 +51,9 @@ module "eks" {
   subnets         = module.vpc.private_subnets
   vpc_id          = module.vpc.vpc_id
   version         = "15.1.0"
+  enable-autoscaling  = true
+  min-nodes= 1
+  max-nodes= 4
 
   workers_group_defaults = {
     root_volume_type = "gp2"

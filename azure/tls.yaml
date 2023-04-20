@@ -1,8 +1,8 @@
-apiVersion: spv.no/v1
+apiVersion: v1
 kind: AzureKeyVaultSecret
 metadata:
   name: cert-sync
-  namespace: certsync
+  namespace: Secret
 spec:
   vault:
     name: trfrm-kv
