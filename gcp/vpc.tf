@@ -38,3 +38,4 @@ resource "google_compute_subnetwork" "subnet2" {
   private_ip_google_access = true
 }
 
+
